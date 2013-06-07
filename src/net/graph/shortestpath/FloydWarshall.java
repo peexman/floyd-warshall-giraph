@@ -59,15 +59,15 @@ public class FloydWarshall implements Tool
 		LOG.info("max_worker="+max_worker);
 		String in_edges = props.getProperty("in_edges");
 		LOG.info("in_edges="+in_edges);
-		String in_vertexes = props.getProperty("in_vertexes");
-		LOG.info("in_vertexes="+in_vertexes);
+		String in_vertices = props.getProperty("in_vertices");
+		LOG.info("in_vertices="+in_vertices);
 		String out_path = props.getProperty("out_path");
 		LOG.info("out_path="+out_path);
 		
-		if (in_edges==null || in_vertexes==null || out_path==null) {
+		if (in_edges==null || in_vertices==null || out_path==null) {
 			LOG.error("all of these properties must be set:"+
 					"\n - in_edges :"+in_edges+
-					"\n - in_vertexes :"+in_vertexes+
+					"\n - in_vertices :"+in_vertices+
 					"\n - out_path :"+out_path
 					);
 			return -1;
@@ -90,7 +90,7 @@ public class FloydWarshall implements Tool
 		if (zk_list!=null) giraphConf.setZooKeeperConfiguration(zk_list);
 		giraphConf.setWorkerConfiguration(min_worker, max_worker, (float)min_worker*100/max_worker);		
         GiraphFileInputFormat.addEdgeInputPath(giraphConf, new Path(in_edges));
-        GiraphFileInputFormat.addVertexInputPath(giraphConf, new Path(in_vertexes));
+        GiraphFileInputFormat.addVertexInputPath(giraphConf, new Path(in_vertices));
 	    GiraphJob job = new GiraphJob(giraphConf, getClass().getName());
 	    FileOutputFormat.setOutputPath(job.getInternalJob(), new Path(out_path));
 	    
