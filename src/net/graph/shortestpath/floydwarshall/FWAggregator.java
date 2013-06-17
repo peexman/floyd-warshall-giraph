@@ -1,8 +1,20 @@
 package net.graph.shortestpath.floydwarshall;
 
-import net.graph.adjlist.AdjListAggregator;
+import net.graph.adjlist.LongIntMapWritable;
 
-public class FWAggregator extends AdjListAggregator 
+import org.apache.giraph.aggregators.BasicAggregator;
+
+public class FWAggregator extends BasicAggregator<LongIntMapWritable> 
 {
 	public static String ID = FWAggregator.class.getName();
+	
+	@Override
+	public void aggregate(LongIntMapWritable row) {
+		getAggregatedValue().putAll(row);
+	}
+
+	@Override
+	public LongIntMapWritable createInitialValue() {
+		return new LongIntMapWritable();
+	}
 }

@@ -63,6 +63,12 @@ public class FloydWarshall implements Tool
 		LOG.info("in_vertices="+in_vertices);
 		String out_path = props.getProperty("out_path");
 		LOG.info("out_path="+out_path);
+		String partition_count = props.getProperty("partition_count");
+		LOG.info("partition_count="+partition_count);
+		String compute_threads = props.getProperty("compute_threads");
+		LOG.info("compute_threads="+compute_threads);
+		Boolean directed = Boolean.parseBoolean(props.getProperty("directed", "true"));
+		LOG.info("directed="+directed);
 		
 		if (in_edges==null || in_vertices==null || out_path==null) {
 			LOG.error("all of these properties must be set:"+
@@ -78,6 +84,7 @@ public class FloydWarshall implements Tool
 	    }
 	    
 	    GiraphConfiguration giraphConf = new GiraphConfiguration(getConf());
+	    giraphConf.setNumComputeThreads(num_thread);
 	    giraphConf.setVertexClass(FWVertex.class);
 		giraphConf.setEdgeInputFormatClass(NTripleInputFormat.class);
 		giraphConf.setVertexInputFormatClass(LongVertexInputFormat.class);
@@ -86,7 +93,9 @@ public class FloydWarshall implements Tool
 		giraphConf.setWorkerContextClass(FWWorkerContext.class);
 		giraphConf.setGraphPartitionerFactoryClass(SimpleLongRangePartitionerFactory.class);
 		if (key_space!=null) giraphConf.set(GiraphConstants.PARTITION_VERTEX_KEY_SPACE_SIZE, key_space);
-		giraphConf.setNumComputeThreads(num_thread);		
+		if (partition_count!=null) giraphConf.set(GiraphConstants.USER_PARTITION_COUNT.getKey(), String.valueOf(partition_count));
+		giraphConf.setBoolean("fw.directed", directed);
+		if (compute_threads!=null) giraphConf.setInt("fw.compute_threads", Integer.parseInt(compute_threads));
 		if (zk_list!=null) giraphConf.setZooKeeperConfiguration(zk_list);
 		giraphConf.setWorkerConfiguration(min_worker, max_worker, (float)min_worker*100/max_worker);		
         GiraphFileInputFormat.addEdgeInputPath(giraphConf, new Path(in_edges));
