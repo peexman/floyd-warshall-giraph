@@ -1,4 +1,4 @@
-package net.graph.io;
+package net.graph.old;
 
 import java.io.IOException;
 
@@ -22,7 +22,7 @@ public class NTripleInputFormat extends TextEdgeInputFormat<LongWritable,NullWri
 	{
 		@Override
 		protected LongWritable getSourceVertexId(NTriple nt) throws IOException {
-			return nt.getSubject();
+			return nt.getSubject();IntNullTextEdgeInputFormat
 		}
 
 		@Override

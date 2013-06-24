@@ -1,22 +1,21 @@
-package net.graph.adjlist;
+package net.graph.old;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Writable;
 
-public class LongIntMapWritable extends MapWritable
+public class LongIntMapWritable extends ConcurrentMapWritable
 {
-	synchronized public Integer get(long j)
+	public Integer get(long j)
 	{
 		IntWritable value = (IntWritable) get(new LongWritable(j));			
 		return value==null?null:value.get();
 	}
 
-	synchronized public void set(long j, int v)
+	public void set(long j, int v)
 	{
 		LongWritable J = new LongWritable(j);
 		IntWritable V = new IntWritable(v);

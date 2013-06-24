@@ -1,4 +1,4 @@
-package net.graph.io;
+package net.graph.old;
 
 public class NTripleException extends Exception {
 

@@ -3,16 +3,16 @@ package net.graph.shortestpath;
 import java.io.FileReader;
 import java.util.Properties;
 
-import net.graph.io.LongVertexInputFormat;
-import net.graph.io.NTripleInputFormat;
 import net.graph.shortestpath.floydwarshall.FWMasterCompute;
 import net.graph.shortestpath.floydwarshall.FWVertex;
+import net.graph.shortestpath.floydwarshall.FWVertexInputFormat;
 import net.graph.shortestpath.floydwarshall.FWVertexOutputFormat;
 import net.graph.shortestpath.floydwarshall.FWWorkerContext;
 
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.conf.GiraphConstants;
 import org.apache.giraph.io.formats.GiraphFileInputFormat;
+import org.apache.giraph.io.formats.IntNullTextEdgeInputFormat;
 import org.apache.giraph.job.GiraphJob;
 import org.apache.giraph.partition.SimpleLongRangePartitionerFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -49,7 +49,7 @@ public class FloydWarshall implements Tool
 
 		String key_space = props.getProperty("key_space");
 		LOG.info("key_space="+key_space);
-		int num_thread = Integer.parseInt(props.getProperty("num_thread", "5"));
+		String num_thread = props.getProperty("num_thread");
 		LOG.info("num_thread="+num_thread);
 		String zk_list = props.getProperty("zk_list");
 		LOG.info("zk_list="+zk_list);
@@ -84,17 +84,17 @@ public class FloydWarshall implements Tool
 	    }
 	    
 	    GiraphConfiguration giraphConf = new GiraphConfiguration(getConf());
-	    giraphConf.setNumComputeThreads(num_thread);
+	    giraphConf.setBoolean("fw.directed", directed);
 	    giraphConf.setVertexClass(FWVertex.class);
-		giraphConf.setEdgeInputFormatClass(NTripleInputFormat.class);
-		giraphConf.setVertexInputFormatClass(LongVertexInputFormat.class);
+		giraphConf.setEdgeInputFormatClass(IntNullTextEdgeInputFormat.class);
+		giraphConf.setVertexInputFormatClass(FWVertexInputFormat.class);
 		giraphConf.setVertexOutputFormatClass(FWVertexOutputFormat.class);
 		giraphConf.setMasterComputeClass(FWMasterCompute.class);
 		giraphConf.setWorkerContextClass(FWWorkerContext.class);
 		giraphConf.setGraphPartitionerFactoryClass(SimpleLongRangePartitionerFactory.class);
+		if (num_thread!=null) giraphConf.setNumComputeThreads(Integer.parseInt(num_thread));
 		if (key_space!=null) giraphConf.set(GiraphConstants.PARTITION_VERTEX_KEY_SPACE_SIZE, key_space);
-		if (partition_count!=null) giraphConf.set(GiraphConstants.USER_PARTITION_COUNT.getKey(), String.valueOf(partition_count));
-		giraphConf.setBoolean("fw.directed", directed);
+		if (partition_count!=null) giraphConf.set(GiraphConstants.USER_PARTITION_COUNT.getKey(), String.valueOf(partition_count));		
 		if (compute_threads!=null) giraphConf.setInt("fw.compute_threads", Integer.parseInt(compute_threads));
 		if (zk_list!=null) giraphConf.setZooKeeperConfiguration(zk_list);
 		giraphConf.setWorkerConfiguration(min_worker, max_worker, (float)min_worker*100/max_worker);		

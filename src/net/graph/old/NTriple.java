@@ -1,4 +1,4 @@
-package net.graph.io;
+package net.graph.old;
 
 import java.io.DataInput;
 import java.io.DataOutput;
