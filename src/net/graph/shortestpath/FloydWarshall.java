@@ -14,7 +14,7 @@ import org.apache.giraph.conf.GiraphConstants;
 import org.apache.giraph.io.formats.GiraphFileInputFormat;
 import org.apache.giraph.io.formats.IntNullTextEdgeInputFormat;
 import org.apache.giraph.job.GiraphJob;
-import org.apache.giraph.partition.SimpleLongRangePartitionerFactory;
+import org.apache.giraph.partition.SimpleIntRangePartitionerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -91,7 +91,7 @@ public class FloydWarshall implements Tool
 		giraphConf.setVertexOutputFormatClass(FWVertexOutputFormat.class);
 		giraphConf.setMasterComputeClass(FWMasterCompute.class);
 		giraphConf.setWorkerContextClass(FWWorkerContext.class);
-		giraphConf.setGraphPartitionerFactoryClass(SimpleLongRangePartitionerFactory.class);
+		giraphConf.setGraphPartitionerFactoryClass(SimpleIntRangePartitionerFactory.class);
 		if (num_thread!=null) giraphConf.setNumComputeThreads(Integer.parseInt(num_thread));
 		if (key_space!=null) giraphConf.set(GiraphConstants.PARTITION_VERTEX_KEY_SPACE_SIZE, key_space);
 		if (partition_count!=null) giraphConf.set(GiraphConstants.USER_PARTITION_COUNT.getKey(), String.valueOf(partition_count));		
