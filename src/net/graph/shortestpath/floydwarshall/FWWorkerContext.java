@@ -7,10 +7,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.graph.adjlist.AdjListWritable;
 import net.graph.shortestpath.floydwarshall.FWVertex.Compute;
+import net.graph.shortestpath.floydwarshall.io.FWVertexValueWritable;
 
 import org.apache.giraph.worker.WorkerContext;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.Writable;
 import org.apache.log4j.Logger;
 
 public class FWWorkerContext extends WorkerContext
@@ -19,21 +21,21 @@ public class FWWorkerContext extends WorkerContext
 	
 	private Map<Integer,ArrayList<Compute>> compute_units = new HashMap<Integer,ArrayList<Compute>>();
 	private boolean directed = false;
-	private AdjListWritable map;
+	private FWVertexValueWritable previous;
 	private ExecutorService pool;
 	private int offset, nthreads;
 	
 	public ArrayList<Compute> getComputeUnits(Integer i) { return compute_units.get(i); }
 	public void setComputeUnits(Integer i, ArrayList<Compute> computeUnits) { compute_units.put(i, computeUnits); }
 	public boolean isDirected() { return directed; }
-	public AdjListWritable getMap() { return map; }
+	public FWVertexValueWritable getPrevious() { return previous; }
 	public ExecutorService getPool() { return pool; }
 	public int getComputeThreads() { return nthreads; }
 	public int getOffset() { return offset; }
 
 	@Override
 	public void preSuperstep() {
-		map = getAggregatedValue(FWAggregator.ID);
+		previous = getAggregatedValue(FWAggregator.ID);
 	}
 
 	@Override

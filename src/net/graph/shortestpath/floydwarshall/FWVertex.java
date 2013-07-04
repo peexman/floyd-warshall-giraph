@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-import net.graph.adjlist.AdjListWritable;
+import net.graph.shortestpath.floydwarshall.io.FWVertexValueWritable;
 
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.graph.Vertex;
@@ -14,11 +14,15 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.log4j.Logger;
 
-public class FWVertex extends Vertex<IntWritable, AdjListWritable, NullWritable, NullWritable> 
+public class FWVertex extends Vertex<IntWritable, FWVertexValueWritable, IntWritable, NullWritable> 
 {
 	private static Logger LOG = Logger.getLogger(FWVertex.class);
+	
+	public static final byte INFINITY = Byte.MIN_VALUE;
+	public static final int EMPTY = Integer.MIN_VALUE;
 	private byte[] i_, k_;
 	private int i, k, V;
+	private int[] n_, pk_;
 	
 	@Override
 	public void compute(Iterable<NullWritable> messages) throws IOException 
@@ -28,6 +32,7 @@ public class FWVertex extends Vertex<IntWritable, AdjListWritable, NullWritable,
 		i = getId().get();
 		i_ = k_ = null;		
 		k = (int) s-1;
+		n_ = null;
 
 		if (k<0) setup(); else compute();
 	
@@ -37,12 +42,15 @@ public class FWVertex extends Vertex<IntWritable, AdjListWritable, NullWritable,
 	
 	private void compute() throws IOException
 	{
-		i_ = getValue().getBytes();
-		if (i_[k]!=AdjListWritable.INFINITY) 
+		i_ = getValue().i().getBytes();
+		if (i_[k]!=INFINITY) 
 		{
+			n_ = getValue().n().getInts();
+			
 			FWWorkerContext ctx = (FWWorkerContext) getWorkerContext();
 			ExecutorService pool = ctx.getPool();
-			k_ = ctx.getMap().getBytes();
+			k_ = ctx.getPrevious().i().getBytes();
+			pk_ = ctx.getPrevious().n().getInts();
 			try 
 			{
 				ArrayList<Compute> clist = initPool(ctx);
@@ -76,14 +84,20 @@ public class FWVertex extends Vertex<IntWritable, AdjListWritable, NullWritable,
 
 	private void setup()
 	{
+		int[] n_ = new int[V];
 		byte[] i_ = new byte[V];
-		Arrays.fill(i_, 0, V, AdjListWritable.INFINITY);
-		i_[i]=0;
-		for (Edge<IntWritable, NullWritable> edge : getEdges()) {
+		Arrays.fill(i_, 0, V, INFINITY);
+		Arrays.fill(n_, 0, V, EMPTY);
+		for (Edge<IntWritable, IntWritable> edge : getEdges()) {
 			int j = edge.getTargetVertexId().get();
-			if (i!=j) i_[j]=1;			
+//			if (i!=j) {
+				i_[j]=1;
+				n_[j]=i;
+//			}
 		}
-		setValue(new AdjListWritable(i_));
+		i_[i]=0;
+		n_[i]=EMPTY;
+		setValue(new FWVertexValueWritable(i_,n_));
 	}
 	
 	public class Compute implements Callable<Integer>
@@ -102,14 +116,15 @@ public class FWVertex extends Vertex<IntWritable, AdjListWritable, NullWritable,
 			for (int j=start; j<stop; j++) 
 			{
 				if (i==j) continue;
-				if (k_[j]!=AdjListWritable.INFINITY) {
+				if (k_[j]!=INFINITY) {
 					byte sum = (byte) (i_[k]+k_[j]);
-					if (i_[j]==AdjListWritable.INFINITY) {
+					if (i_[j]==INFINITY) {
 						i_[j]=sum;
+						n_[j]=pk_[j];
 					} else {
 						if (sum<i_[j]) {
 							i_[j]=sum;
-//							n_[j]=k;
+							n_[j]=pk_[j];
 						}
 					}
 				}

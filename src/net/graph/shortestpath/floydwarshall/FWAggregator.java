@@ -1,23 +1,22 @@
 package net.graph.shortestpath.floydwarshall;
 
-import net.graph.adjlist.AdjListWritable;
+import net.graph.shortestpath.floydwarshall.io.FWVertexValueWritable;
 
 import org.apache.giraph.aggregators.BasicAggregator;
+import org.apache.hadoop.io.BytesWritable;
 
-public class FWAggregator extends BasicAggregator<AdjListWritable> 
+public class FWAggregator extends BasicAggregator<FWVertexValueWritable> 
 {
 	public static String ID = FWAggregator.class.getName();
 
 	@Override
-	public void aggregate(AdjListWritable newData) {
-		if (newData.getBytes().length>0) {
-			getAggregatedValue().set(newData);
-		}
+	public void aggregate(FWVertexValueWritable newData) {
+		getAggregatedValue().aggregate(newData);
 	}
 
 	@Override
-	public AdjListWritable createInitialValue() {
-		return new AdjListWritable();
+	public FWVertexValueWritable createInitialValue() {
+		return new FWVertexValueWritable();
 	}
 
 }

@@ -5,18 +5,20 @@ import java.util.Properties;
 
 import net.graph.shortestpath.floydwarshall.FWMasterCompute;
 import net.graph.shortestpath.floydwarshall.FWVertex;
-import net.graph.shortestpath.floydwarshall.FWVertexInputFormat;
-import net.graph.shortestpath.floydwarshall.FWVertexOutputFormat;
 import net.graph.shortestpath.floydwarshall.FWWorkerContext;
+import net.graph.shortestpath.floydwarshall.io.FWVertexValueWritable;
+import net.graph.shortestpath.floydwarshall.io.formats.FWOutputFormat;
+import net.graph.shortestpath.floydwarshall.io.formats.FWTextVertexInputFormat;
+import net.graph.shortestpath.floydwarshall.io.formats.TripleInputFormat;
 
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.conf.GiraphConstants;
 import org.apache.giraph.io.formats.GiraphFileInputFormat;
-import org.apache.giraph.io.formats.IntNullTextEdgeInputFormat;
 import org.apache.giraph.job.GiraphJob;
 import org.apache.giraph.partition.SimpleIntRangePartitionerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -86,9 +88,11 @@ public class FloydWarshall implements Tool
 	    GiraphConfiguration giraphConf = new GiraphConfiguration(getConf());
 	    giraphConf.setBoolean("fw.directed", directed);
 	    giraphConf.setVertexClass(FWVertex.class);
-		giraphConf.setEdgeInputFormatClass(IntNullTextEdgeInputFormat.class);
-		giraphConf.setVertexInputFormatClass(FWVertexInputFormat.class);
-		giraphConf.setVertexOutputFormatClass(FWVertexOutputFormat.class);
+//		giraphConf.setEdgeInputFormatClass(FWTextEdgeInputFormat.class);
+	    giraphConf.setEdgeInputFormatClass(TripleInputFormat.class);
+		giraphConf.setVertexInputFormatClass(FWTextVertexInputFormat.class);
+		giraphConf.setVertexOutputFormatClass(FWOutputFormat.class);
+//		giraphConf.setVertexOutputFormatClass(FWVertexOutputFormat.class);
 		giraphConf.setMasterComputeClass(FWMasterCompute.class);
 		giraphConf.setWorkerContextClass(FWWorkerContext.class);
 		giraphConf.setGraphPartitionerFactoryClass(SimpleIntRangePartitionerFactory.class);
@@ -102,7 +106,12 @@ public class FloydWarshall implements Tool
         GiraphFileInputFormat.addVertexInputPath(giraphConf, new Path(in_vertices));
 	    GiraphJob job = new GiraphJob(giraphConf, getClass().getName());
 	    FileOutputFormat.setOutputPath(job.getInternalJob(), new Path(out_path));
-	    
+
+        Class<?> indexClass = giraphConf.getClass(GiraphConstants.VERTEX_ID_CLASS.getKey(), IntWritable.class);
+        Class<?> valueClass = giraphConf.getClass(GiraphConstants.VERTEX_VALUE_CLASS.getKey(), FWVertexValueWritable.class);     
+	    job.getInternalJob().getConfiguration().setClass("mapred.output.key.class", indexClass, Object.class);
+	    job.getInternalJob().getConfiguration().setClass("mapred.output.value.class", valueClass, Object.class);
+
 	    return job.run(true) ? 0 : -1;
 	}
 
