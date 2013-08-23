@@ -36,6 +36,13 @@ public class TripleWritable implements Writable {
 	public IntWritable getSubject() { return subject; }
 	public IntWritable getPredicate() { return predicate; }
 	public IntWritable getObject() { return object; }
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(subject).append(":S\t").append(predicate).append(":P\t").append(object).append(":O");
+		return sb.toString();
+	}
 
 
 	@Override

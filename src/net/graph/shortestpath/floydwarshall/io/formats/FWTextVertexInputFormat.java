@@ -1,7 +1,9 @@
 package net.graph.shortestpath.floydwarshall.io.formats;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
+import net.graph.shortestpath.floydwarshall.io.FWEdgeValueWritable;
 import net.graph.shortestpath.floydwarshall.io.FWVertexValueWritable;
 
 import org.apache.giraph.edge.Edge;
@@ -13,7 +15,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import com.google.common.collect.ImmutableList;
 
-public class FWTextVertexInputFormat extends TextVertexInputFormat<IntWritable, FWVertexValueWritable, IntWritable> {
+public class FWTextVertexInputFormat extends TextVertexInputFormat<IntWritable, FWVertexValueWritable, FWEdgeValueWritable> {
 	  @Override
 	  public TextVertexReader createVertexReader(
 	      InputSplit split, TaskAttemptContext context) throws IOException {
@@ -24,10 +26,13 @@ public class FWTextVertexInputFormat extends TextVertexInputFormat<IntWritable, 
 	   * Reader for this InputFormat.
 	   */
 	  public class IntVertexReader extends TextVertexReaderFromEachLine {
+		  
+		private final Pattern SEPARATOR = Pattern.compile("\t");
 
 		@Override
 		protected IntWritable getId(Text line) throws IOException {
-			return new IntWritable(Integer.parseInt(line.toString()));
+			String[] split = SEPARATOR.split(line.toString());
+			return new IntWritable(Integer.parseInt(split[1]));
 		}
 
 		@Override
@@ -36,7 +41,7 @@ public class FWTextVertexInputFormat extends TextVertexInputFormat<IntWritable, 
 		}
 
 		@Override
-		protected Iterable<Edge<IntWritable, IntWritable>> getEdges(Text line)
+		protected Iterable<Edge<IntWritable, FWEdgeValueWritable>> getEdges(Text line)
 				throws IOException {
 			return ImmutableList.of();
 		}

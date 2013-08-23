@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
@@ -18,9 +19,6 @@ import org.apache.log4j.Logger;
 public class GetAllShortestPathsText implements Tool
 {
 	private static Logger LOG = Logger.getLogger(GetAllShortestPathsText.class);
-	
-	private static String in_path;
-	private static String out_path;
 	
 	private Configuration conf;
 	
@@ -37,19 +35,27 @@ public class GetAllShortestPathsText implements Tool
 	@Override
 	public int run(String[] args) throws Exception 
 	{
-		Job job = new Job();			
-		FileInputFormat.addInputPath(job, new Path(in_path));
+		Job job = new Job(getConf());
+		
+		LOG.info("in_path="+args[0]);
+		LOG.info("out_path="+args[1]);
+		
+		FileInputFormat.addInputPath(job, new Path(args[0]));
 		job.setJarByClass(GetAllShortestPathsText.class);
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setMapperClass(AllShortestPathsText.Map.class);
-		job.setMapOutputKeyClass(IntWritable.class);
-		job.setMapOutputValueClass(BytesWritable.class);
-		job.setNumReduceTasks(1);
-		job.setReducerClass(AllShortestPathsText.Reduce.class);
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
+//		job.setMapOutputKeyClass(IntWritable.class);
+//		job.setMapOutputValueClass(BytesWritable.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(Text.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
 
-		FileOutputFormat.setOutputPath(job, new Path(out_path));
+		job.setNumReduceTasks(0);
+//		job.setReducerClass(AllShortestPathsText.Reduce.class);
+//		job.setOutputKeyClass(Text.class);
+//		job.setOutputValueClass(Text.class);
+
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 	    
 	    return job.waitForCompletion(true) ? 0 : -1;
 	}
@@ -66,12 +72,9 @@ public class GetAllShortestPathsText implements Tool
 //			return;
 //		}
 
-		in_path = args[0];
-		LOG.info("in_path="+in_path);
-		out_path = args[1];
-		LOG.info("out_path="+out_path);
+
 		
-   		ToolRunner.run(new GetAllShortestPathsText(), args);
+   		ToolRunner.run(new Configuration(), new GetAllShortestPathsText(), args);
 	}
 
 }

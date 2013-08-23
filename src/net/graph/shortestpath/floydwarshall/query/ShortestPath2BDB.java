@@ -116,28 +116,31 @@ public class ShortestPath2BDB extends BerkeleyDB
 
 	public static void main(String[] args) throws IOException {
 		
-		if (args==null || args.length!=2) {
-			System.err.println("usage: GetShortestPath2BDB <dboutpath> <inpathsfile>");
+		if (args==null || args.length<2) {
+			System.err.println("usage: GetShortestPath2BDB <dboutpath> <inpathsfile>*");
 		}
 		
 		final EntryBinding<Integer> myBinding = TupleBinding.getPrimitiveBinding(Integer.class);
 		final ShortestPath2BDB db = new ShortestPath2BDB(args[0],false);
 		
 		db.open();
-		new FileLoader<IntWritable,BytesWritable>(args[1]) {
-
-			@Override
-			protected void read(IntWritable key, BytesWritable value) {
-				DatabaseEntry bkey = new DatabaseEntry();
-			    myBinding.objectToEntry(key.get(), bkey);
-			    
-				byte[] bytes = value.getBytes();
-				int length = value.getLength();
+		for (int i=1; i<args.length; i++)
+		{
+			new FileLoader<IntWritable,BytesWritable>(args[i]) {
+	
+				@Override
+				protected void read(IntWritable key, BytesWritable value) {
+					DatabaseEntry bkey = new DatabaseEntry();
+				    myBinding.objectToEntry(key.get(), bkey);
+				    
+					byte[] bytes = value.getBytes();
+					int length = value.getLength();
+					
+					db.put(bkey, new DatabaseEntry(bytes,0,length));
+				}
 				
-				db.put(bkey, new DatabaseEntry(bytes,0,length));
-			}
-			
-		}.load();
+			}.load();
+		}
 		db.close();
 
 		System.out.println("done.");
