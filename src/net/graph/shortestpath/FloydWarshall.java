@@ -7,8 +7,8 @@ import net.graph.shortestpath.floydwarshall.FWMasterCompute;
 import net.graph.shortestpath.floydwarshall.FWVertex;
 import net.graph.shortestpath.floydwarshall.FWWorkerContext;
 import net.graph.shortestpath.floydwarshall.io.formats.FWOutputFormatText;
+import net.graph.shortestpath.floydwarshall.io.formats.FWTextEdgeInputFormat;
 import net.graph.shortestpath.floydwarshall.io.formats.FWTextVertexInputFormat;
-import net.graph.shortestpath.floydwarshall.io.formats.QuadInputFormat;
 
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.conf.GiraphConstants;
@@ -91,9 +91,9 @@ public class FloydWarshall implements Tool
 	    giraphConf.setBoolean("fw.directed", directed);
 	    giraphConf.set("fw.dictpath", dictpath);
 	    giraphConf.setVertexClass(FWVertex.class);
-//		giraphConf.setEdgeInputFormatClass(FWTextEdgeInputFormat.class);
+		giraphConf.setEdgeInputFormatClass(FWTextEdgeInputFormat.class);
 //	    giraphConf.setEdgeInputFormatClass(TripleInputFormat.class);
-	    giraphConf.setEdgeInputFormatClass(QuadInputFormat.class);
+//	    giraphConf.setEdgeInputFormatClass(QuadInputFormat.class);
 	    giraphConf.setOutEdgesClass(ByteArrayEdges.class);
 		giraphConf.setVertexInputFormatClass(FWTextVertexInputFormat.class);
 		giraphConf.setVertexOutputFormatClass(FWOutputFormatText.class);
