@@ -1,15 +1,8 @@
 package net.graph.shortestpath.floydwarshall;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,20 +12,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.graph.dictionary.Dictionary;
 import net.graph.shortestpath.floydwarshall.FWVertex.Compute;
 import net.graph.shortestpath.floydwarshall.io.FWVertexValueWritable;
 
 import org.apache.giraph.worker.WorkerContext;
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.metrics.file.FileContext;
 import org.apache.log4j.Logger;
-
-import com.sleepycat.je.ThreadInterruptedException;
 
 public class FWWorkerContext extends WorkerContext
 {
@@ -44,7 +30,7 @@ public class FWWorkerContext extends WorkerContext
 	private ExecutorService pool;
 	private int offset, nthreads;
 //	private Dictionary dictionary;
-	private List<String> dictionary = new ArrayList<String>();
+	private List<String> dictionary;
 	
 	public ArrayList<Compute> getComputeUnits(Integer i) { return compute_units.get(i); }
 	public void setComputeUnits(Integer i, ArrayList<Compute> computeUnits) { compute_units.put(i, computeUnits); }
@@ -78,28 +64,31 @@ public class FWWorkerContext extends WorkerContext
 		pool = Executors.newFixedThreadPool(nthreads);
 		
 		String dictpath = getContext().getConfiguration().get("fw.dictpath");
-		InputStream in = null;
-		BufferedReader br = null;
-		InputStreamReader isr = null;
-		try {
-			in = new URL("hdfs://"+dictpath).openStream();
-			isr = new InputStreamReader(in);
-			br = new BufferedReader(isr);
-			
-			String line = "";
-			while ((line=br.readLine()) != null) {
-				String[] split = line.split("\t");
-				dictionary.add(split[0]);
+		if (dictpath!=null && !dictpath.isEmpty()) {
+			InputStream in = null;
+			BufferedReader br = null;
+			InputStreamReader isr = null;
+			try {
+				dictionary = new ArrayList<String>();
+				in = new URL("hdfs://"+dictpath).openStream();
+				isr = new InputStreamReader(in);
+				br = new BufferedReader(isr);
+				
+				String line = "";
+				while ((line=br.readLine()) != null) {
+					String[] split = line.split("\t");
+					dictionary.add(split[0]);
+				}
+	
+			} catch (Throwable e) {
+				LOG.error("error opening dictionary from path "+dictpath, e);
+				throw new InstantiationException(e.getLocalizedMessage());
+			} 
+			finally {
+				IOUtils.closeStream(br);
+				IOUtils.closeStream(isr);
+				IOUtils.closeStream(in);			
 			}
-
-		} catch (Throwable e) {
-			LOG.error("error opening dictionary from path "+dictpath, e);
-			throw new InstantiationException(e.getLocalizedMessage());
-		} 
-		finally {
-			IOUtils.closeStream(br);
-			IOUtils.closeStream(isr);
-			IOUtils.closeStream(in);			
 		}
 		
 //		dictionary = new Dictionary(dictpath,true);
@@ -131,8 +120,8 @@ public class FWWorkerContext extends WorkerContext
 //			dictionary = null;
 		}
 	}
-	public boolean isTransitive(int rel_id) {
-		String relation = "";
+//	public boolean isTransitive(int rel_id) {
+//		String relation = "";
 //		try 
 //		{
 //			relation = dictionary.get(rel_id);
@@ -140,16 +129,20 @@ public class FWWorkerContext extends WorkerContext
 //		catch (UnsupportedEncodingException e) {
 //			LOG.error("error accessing dictionary", e);
 //		}
-		relation = dictionary.get(rel_id);
-		return relation.equals("COMMUNICATE");
-	}
+//		relation = dictionary.get(rel_id);
+//		return relation.equals("COMMUNICATE");
+//	}
 	
-	public int getIDFromDictionary(String entry) {
-		for (int i=0; i<dictionary.size(); i++) {
-			if (dictionary.get(i).equals(entry))
-				return i;
-		}
-		return -1;
+//	public int getIDFromDictionary(String entry) {
+//		for (int i=0; i<dictionary.size(); i++) {
+//			if (dictionary.get(i).equals(entry))
+//				return i;
+//		}
+//		return -1;
+//	}
+	
+	public String getLabelFromID(int id) {
+		return dictionary!=null?dictionary.get(id):String.valueOf(id);
 	}
 
 }
