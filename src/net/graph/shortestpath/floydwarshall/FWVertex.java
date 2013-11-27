@@ -11,7 +11,6 @@ import net.graph.shortestpath.floydwarshall.io.FWVertexValueWritable;
 
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.graph.Vertex;
-import org.apache.giraph.worker.WorkerContext;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.log4j.Logger;
@@ -90,16 +89,16 @@ public class FWVertex extends Vertex<IntWritable, FWVertexValueWritable, FWEdgeV
 		byte[] i_ = new byte[V];
 		Arrays.fill(i_, 0, V, INFINITY);
 		Arrays.fill(n_, 0, V, EMPTY);
-		FWWorkerContext ctx = (FWWorkerContext) getWorkerContext();
+//		FWWorkerContext ctx = (FWWorkerContext) getWorkerContext();
 		for (Edge<IntWritable, FWEdgeValueWritable> edge : getEdges()) {
-			if (ctx.isTransitive(edge.getValue().getRelation().get())) {
+//			if (ctx.isTransitive(edge.getValue().getRelation().get())) {
 				int j = edge.getTargetVertexId().get();
 	//			if (i!=j) {
 					i_[j]=1;
 					n_[j]=i;
 //					n_[j]=edge.getValue().getIdx().get();
 	//			}
-			}
+//			}
 		}
 		i_[i]=0;
 		n_[i]=EMPTY;
